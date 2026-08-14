@@ -13,16 +13,32 @@ const MovieList = ({ type, title, emoji }) => {
     order: "asc",
   });
 
+  //fetching movies when the component loads
   useEffect(() => {
     fetchMovies();
   }, []);
 
+  //Here we are applying rating and filter
   useEffect(() => {
-    if (sort.by !== "default") {
-      const sortedMovies = _.orderBy(filterMovies, [sort.by], [sort.order]);
-      setFilterMovies(sortedMovies);
+    let result = movies;
+
+    // Filter movies by minimum rating
+    if (minRating > 0) {
+      result = result.filter(
+        (movie) => movie.vote_average >= minRating
+      );
     }
-  }, [sort]);
+
+    //sorting the movies
+    if (sort.by !== "default") {
+      result = _.orderBy(result,
+        [sort.by],
+        [sort.order]
+      );
+    }
+
+    setFilterMovies(result);
+  }, [movies, minRating, sort]);
 
  const fetchMovies = async () => {
   try {
@@ -38,23 +54,19 @@ const MovieList = ({ type, title, emoji }) => {
     }
 
     setMovies(data.results || []);
-    setFilterMovies(data.results || []);
-  } catch (error) {
+  } catch (error)
+   {
     console.error("Fetch Error:", error);
   }
 };
 
   const handleFilter = (rate) => {
-    if (rate === minRating) {
-      setMinRating(0);
-      setFilterMovies(movies);
-    } else {
-      setMinRating(rate);
-
-      const filtered = movies.filter((movie) => movie.vote_average >= rate);
-      setFilterMovies(filtered);
-    }
-  };
+  if (rate === minRating) {
+    setMinRating(0);
+  } else {
+    setMinRating(rate);
+  }
+};
 
   const handleSort = (e) => {
     const { name, value } = e.target;
